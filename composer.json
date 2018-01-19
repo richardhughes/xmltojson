@@ -1,0 +1,16 @@
+{
+    "name": "richardhughes/xmltojson",
+    "type": "library",
+    "authors": [
+        {
+            "name": "Richie Hughes",
+            "email": "eeuc40@hotmail.com"
+        }
+    ],
+    "require": {},
+    "autoload": {
+        "psr-4": {
+            "Converter\\": "src/"
+        }
+    }
+}
