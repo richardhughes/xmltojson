@@ -3,11 +3,12 @@
     "type": "library",
     "authors": [
         {
-            "name": "Richie Hughes",
-            "email": "eeuc40@hotmail.com"
+            "name": "Richie Hughes"
         }
     ],
-    "require": {},
+    "require": {
+        "php": "^7.1"
+    },
     "autoload": {
         "psr-4": {
             "Converter\\": "src/",
