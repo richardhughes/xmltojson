@@ -32,16 +32,11 @@ class XML
             'autoText' => true,
             'keySearch' => false,
             'keyReplace' => false,
-//            'namespaces' => array_merge(
-//                $this->options['namespaces'] ?? [],
-//                $this->xml->getDocNamespaces()
-//            )
         ];
 
         $options = array_merge($defaults, $this->options);
         $namespaces = $this->xml->getDocNamespaces();
         $namespaces[''] = null;
-//        $options['namespaces'][''] = null;
 
         $attributesArray = [];
         foreach ($namespaces as $prefix => $namespace) {
@@ -59,8 +54,6 @@ class XML
         foreach ($namespaces as $prefix => $namespace) {
             foreach ($this->xml->children($namespace) as $childXml) {
                 $object = new XML($childXml, $options);
-//                var_dump($options);
-//                die;
                 $childArray = $object->toArray();
                 list($childTagName, $childProperties) = each($childArray);
 
