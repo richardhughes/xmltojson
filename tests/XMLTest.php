@@ -37,10 +37,4 @@ class XMLTest extends TestCase
             ]
         ];
     }
-
-
-    public function testWorks()
-    {
-        $this->assertTrue(true);
-    }
 }
