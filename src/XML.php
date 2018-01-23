@@ -10,10 +10,21 @@ class XML
 
     private $options;
 
+    private $defaultOptions = [
+        'namespaceSeparator' => ':',
+        'attributePrefix' => '@',
+        'alwaysArray' => [],
+        'autoArray' => true,
+        'textContent' => '$',
+        'autoText' => true,
+        'keySearch' => false,
+        'keyReplace' => false,
+    ];
+
     public function __construct(SimpleXMLElement $xml, array $options = [])
     {
         $this->xml = $xml;
-        $this->options = $options;
+        $this->options = array_merge($this->defaultOptions, $options);
     }
 
     public function toJson(): string
@@ -23,28 +34,17 @@ class XML
 
     public function toArray(): array
     {
-        $defaults = [
-            'namespaceSeparator' => ':',
-            'attributePrefix' => '@',
-            'alwaysArray' => [],
-            'autoArray' => true,
-            'textContent' => '$',
-            'autoText' => true,
-            'keySearch' => false,
-            'keyReplace' => false,
-        ];
-
-        $options = array_merge($defaults, $this->options);
         $namespaces = $this->xml->getDocNamespaces();
         $namespaces[''] = null;
 
         $attributesArray = [];
         foreach ($namespaces as $prefix => $namespace) {
             foreach ($this->xml->attributes($namespace) as $attributeName => $attribute) {
-                if ($options['keySearch']) $attributeName =
-                    str_replace($options['keySearch'], $options['keyReplace'], $attributeName);
-                $attributeKey = $options['attributePrefix']
-                    . ($prefix ? $prefix . $options['namespaceSeparator'] : '')
+                if ($this->options['keySearch']) {
+                    $attributeName = $this->replaceKey($attributeName);
+                }
+                $attributeKey = $this->options['attributePrefix']
+                    . ($prefix ? $prefix . $this->options['namespaceSeparator'] : '')
                     . $attributeName;
                 $attributesArray[$attributeKey] = (string)$attribute;
             }
@@ -53,17 +53,21 @@ class XML
         $tagsArray = [];
         foreach ($namespaces as $prefix => $namespace) {
             foreach ($this->xml->children($namespace) as $childXml) {
-                $object = new XML($childXml, $options);
+                $object = new XML($childXml, $this->options);
                 $childArray = $object->toArray();
-                list($childTagName, $childProperties) = each($childArray);
+                [$childTagName, $childProperties] = each($childArray);
 
-                if ($options['keySearch']) $childTagName =
-                    str_replace($options['keySearch'], $options['keyReplace'], $childTagName);
-                if ($prefix) $childTagName = $prefix . $options['namespaceSeparator'] . $childTagName;
+                if ($this->options['keySearch']) {
+                    $childTagName = $this->replaceKey($childTagName);
+                }
+
+                if ($prefix) {
+                    $childTagName = $prefix . $this->options['namespaceSeparator'] . $childTagName;
+                }
 
                 if (!isset($tagsArray[$childTagName])) {
                     $tagsArray[$childTagName] =
-                        in_array($childTagName, $options['alwaysArray']) || !$options['autoArray']
+                        in_array($childTagName, $this->options['alwaysArray']) || !$this->options['autoArray']
                             ? [$childProperties] : $childProperties;
                 } elseif (
                     is_array($tagsArray[$childTagName]) && array_keys($tagsArray[$childTagName])
@@ -78,13 +82,29 @@ class XML
 
         $textContentArray = [];
         $plainText = trim((string)$this->xml);
-        if ($plainText !== '') $textContentArray[$options['textContent']] = $plainText;
+        if (!empty($plainText)) {
+            $textContentArray[$this->options['textContent']] = $plainText;
+        }
 
-        $propertiesArray = !$options['autoText'] || $attributesArray || $tagsArray || ($plainText === '')
-            ? array_merge($attributesArray, $tagsArray, $textContentArray) : $plainText;
+        $propertiesArray = $plainText;
+        if(!$this->options['autoText'] ||
+            $attributesArray ||
+            $tagsArray ||
+            empty($plainText)){
+            $propertiesArray = array_merge($attributesArray, $tagsArray, $textContentArray);
+        }
 
         return [
             $this->xml->getName() => $propertiesArray
         ];
+    }
+
+    private function replaceKey($attributeName): string
+    {
+        return str_replace(
+            $this->options['keySearch'],
+            $this->options['keyReplace'],
+            $attributeName
+        );
     }
 }
