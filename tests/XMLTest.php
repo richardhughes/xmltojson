@@ -17,8 +17,6 @@ class XMLTest extends TestCase
     public function testXMLIsFormattedAsArrayCorrectly(string $xml, array $expectedOutput): void
     {
         $xmlConverter = new XML(new \SimpleXMLElement($xml), []);
-//        var_dump($xmlConverter->toArray());
-//        exit;
         $this->assertSame($expectedOutput, $xmlConverter->toArray());
     }
 
@@ -38,11 +36,5 @@ class XMLTest extends TestCase
                 ]
             ]
         ];
-    }
-
-
-    public function testWorks()
-    {
-        $this->assertTrue(true);
     }
 }
