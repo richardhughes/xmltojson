@@ -43,9 +43,8 @@ class XML
                 if ($this->options['keySearch']) {
                     $attributeName = $this->replaceKey($attributeName);
                 }
-                $attributeKey = $this->options['attributePrefix']
-                    . ($prefix ? $prefix . $this->options['namespaceSeparator'] : '')
-                    . $attributeName;
+
+                $attributeKey = $this->getKey($prefix, $attributeName, true);
                 $attributesArray[$attributeKey] = (string)$attribute;
             }
         }
@@ -62,7 +61,7 @@ class XML
                 }
 
                 if ($prefix) {
-                    $childTagName = $prefix . $this->options['namespaceSeparator'] . $childTagName;
+                    $childTagName = $this->getKey($prefix, $childTagName);
                 }
 
                 if (!isset($tagsArray[$childTagName])) {
@@ -87,10 +86,11 @@ class XML
         }
 
         $propertiesArray = $plainText;
-        if(!$this->options['autoText'] ||
+        if (!$this->options['autoText'] ||
             $attributesArray ||
             $tagsArray ||
-            empty($plainText)){
+            empty($plainText)
+        ) {
             $propertiesArray = array_merge($attributesArray, $tagsArray, $textContentArray);
         }
 
@@ -106,5 +106,12 @@ class XML
             $this->options['keyReplace'],
             $attributeName
         );
+    }
+
+    private function getKey(string $prefix, string $name, bool $isAttribute = false): string
+    {
+        return ($isAttribute ? $this->options['attributePrefix'] : '')
+            . ($prefix ? $prefix . $this->options['namespaceSeparator'] : '')
+            . $name;
     }
 }
